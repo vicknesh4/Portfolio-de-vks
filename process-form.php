@@ -1,27 +1,49 @@
-<?php
-if (isset($_POST['name']) && isset($_POST['email']) && isset($_POST['message'])) {
-    $to = 'gajanraj.m@gmail.com';  // Adresse e-mail de destination
-    $subject = 'Nouveau message depuis le formulaire de contact';  // Objet du message
+<?php 
+    require_once(__DIR__ . '/vendor/autoload.php');
+    use \Mailjet\Resources;
+    define('API_PUBLIC_KEY', '0eead59c3169a8950338a271072e523c');
+    define('API_PRIVATE_KEY', 'b77d2fe8191759cbfbe5859076ef30a3');
+    $mj = new \Mailjet\Client(API_PUBLIC_KEY, API_PRIVATE_KEY,true,['version' => 'v3.1']);
 
-    // Mise en place de l'entête de l'e-mail
-    $headers = "From: " . $_POST['name'] . " <" . $_POST['email'] . ">\r\n";
-    $headers .= "Reply-To: " . $_POST['email'] . "\r\n";
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
-    // Construction du corps de l'e-mail
-    $message = '<html><body>';
-    $message .= '<h2>Nouveau message depuis le formulaire de contact</h2>';
-    $message .= '<p><b>Nom :</b> ' . $_POST['name'] . '</p>';
-    $message .= '<p><b>Email :</b> ' . $_POST['email'] . '</p>';
-    $message .= '<p><b>Message :</b> ' . $_POST['message'] . '</p>';
-    $message .= '</body></html>';
+    if(!empty($_POST['surname']) && !empty($_POST['firstname']) && !empty($_POST['email']) && !empty($_POST['message'])){
+        $name = htmlspecialchars($_POST['name']);
+        $email = htmlspecialchars($_POST['email']);
+        $message = htmlspecialchars($_POST['message']);
 
-    // Envoi de l'e-mail
-    if (mail($to, $subject, $message, $headers)) {
-        echo '<script>alert("Message envoyé avec succès !");</script>';
+        if(filter_var($email, FILTER_VALIDATE_EMAIL)){
+        $body = [
+            'Messages' => [
+            [
+                'From' => [
+                'Email' => "EMAIL",
+                'Name' => "NAME"
+                ],
+                'To' => [
+                [
+                    'Email' => "gajanraj.m@gmail.com",
+                    'Name' => "vicknesh"
+                ]
+                ],
+                'Subject' => "CONTACT",
+                'TextPart' => '$name, $email, $message', 
+              
+                'CustomID' => "AppGettingStartedTest"
+            ]
+            ]
+        ];
+            $response = $mj->post(Resources::$Email, ['body' => $body]);
+            $response->success();
+            echo "Email envoyé avec succès !";
+        }
+        else{
+            echo "Email non valide";
+        }
+
     } else {
-        echo '<script>alert("Une erreur s\'est produite lors de l\'envoi du message.");</script>';
+        header('Location: index.php');
+        die();
     }
-}
-?>
+
+
+    ?>
